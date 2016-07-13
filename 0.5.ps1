@@ -127,7 +127,8 @@ $Data = $PowerShell.EndInvoke($AsyncObject)
                     $tab.Header = $TabName
                     
                     #write-debug "Troubleshoot this tab"
-                        $grid = New-Object System.Windows.Controls.DataGrid 
+                        $grid = New-Object System.Windows.Controls.GridView
+                        $gridCo = new-object System.Windows.Controls.GridViewColumn
                       #  $column1 = new-object system.windows.controls.columndefinition
                       #  $Column2 = New-Object system.windows.controls.columndefinition
                       #  $column1.Width="1*"
@@ -135,7 +136,7 @@ $Data = $PowerShell.EndInvoke($AsyncObject)
                       #  $grid.ColumnDefinitions.Add($column1)
                       #  $grid.ColumnDefinitions.add($Column2)
 
-                        $gridColumn1 = $gridColumn2 = New-Object System.Windows.Controls.DataGridSelectionMode
+                        $gridColumn1 = $gridColumn2 = New-Object System.Windows.Controls.GridView
                             
                         $ThisDSCResource = ((Get-DscResource $this.Name -Syntax).Split("`n") | select -Skip 2 | select -SkipLast 2) | ConvertFrom-StringData 
                    ForEach ($prop in $ThisDSCResource){
