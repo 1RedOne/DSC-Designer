@@ -26,15 +26,10 @@
         </GroupBox>
 
         <TabControl x:Name="tabControl" Grid.Column="1" >
-            <TabItem Header="TabItem">
-                <Grid Background="#FFE5E5E5">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1"/>
-                        <ColumnDefinition Width="2"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox Grid.Column="1" Text="ham" IsReadOnly="True"/>
-                    <TextBox Grid.Column="2" Text="change this text" IsEnabled="True"/>
-                </Grid>
+            <TabItem Header="Template" Visibility="Hidden">
+                <DataGrid Background="#FFE5E5E5">
+                    
+                </DataGrid>
             </TabItem>
         </TabControl>
         <GridSplitter Grid.Row="2" Height="5">
