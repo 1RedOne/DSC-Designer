@@ -33,7 +33,11 @@ $inputXML = @"
         </GroupBox>
 
         <TabControl x:Name="tabControl" Grid.Column="1" >
-            
+            <TabItem Header="Template" Visibility="Hidden">
+                <DataGrid Background="#FFE5E5E5">
+                    
+                </DataGrid>
+            </TabItem>
         </TabControl>
         <GridSplitter Grid.Row="2" Height="5">
             <GridSplitter.Background>
@@ -41,14 +45,14 @@ $inputXML = @"
             </GridSplitter.Background>
         </GridSplitter>
         <DockPanel Grid.ColumnSpan="2" Grid.Row="2">
-                <RichTextBox x:Name="richTextBox" FontFamily="Consolas">
-                    <FlowDocument>
-                        <Paragraph>
-                            <Run Background="White" Text="RichTextBox"/>
-                        </Paragraph>
-                    </FlowDocument>
-                </RichTextBox>
-            </DockPanel>
+            <RichTextBox x:Name="richTextBox" FontFamily="Consolas">
+                <FlowDocument>
+                    <Paragraph>
+                        <Run Background="White" Text="RichTextBox"/>
+                    </Paragraph>
+                </FlowDocument>
+            </RichTextBox>
+        </DockPanel>
     </Grid>
 </Window>
 "@ 
@@ -121,7 +125,34 @@ $Data = $PowerShell.EndInvoke($AsyncObject)
                     $tab = New-Object System.Windows.Controls.TabItem
                     $tab.Name = "$($TabName)Tab"
                     $tab.Header = $TabName
-                    $tab.Content = ((Get-DscResource $this.Name -Syntax).Split("`n") | select -Skip 2 | select -SkipLast 2)-join "`n" 
+                    
+                    #write-debug "Troubleshoot this tab"
+                        $grid = New-Object System.Windows.Controls.DataGrid 
+                      #  $column1 = new-object system.windows.controls.columndefinition
+                      #  $Column2 = New-Object system.windows.controls.columndefinition
+                      #  $column1.Width="1*"
+                      #  $column2.Width="2*"
+                      #  $grid.ColumnDefinitions.Add($column1)
+                      #  $grid.ColumnDefinitions.add($Column2)
+
+                        $gridColumn1 = $gridColumn2 = New-Object System.Windows.Controls.DataGridSelectionMode
+                            
+                        $ThisDSCResource = ((Get-DscResource $this.Name -Syntax).Split("`n") | select -Skip 2 | select -SkipLast 2) | ConvertFrom-StringData 
+                   ForEach ($prop in $ThisDSCResource){
+                        #$textbox = New-Object System.Windows.Controls.DataGridTextColumn
+                        #$textbox.IsReadOnly=$true
+                        #$textbox.Text=$prop.Name
+                    
+                        #$textbox.SetValue([system.windows.controls.grid]::ColumnProperty,($i%2 + 1))
+                        $gridColumn1.Add($prop.Name)
+                        $gridColumn2.Add($prop.Value)
+                        }
+                    $grid.Columns.Add($gridColumn1)  
+                    $grid.Columns.Add($gridColumn2)
+    
+                    $tab.Content = $grid
+                    #$tab.Content = ((Get-DscResource $this.Name -Syntax).Split("`n") | select -Skip 2 | select -SkipLast 2)-join "`n" 
+                    #don't need to add the tab anymore as we're cloning an active one
                     $WPFtabControl.AddChild($tab)
                     })
 

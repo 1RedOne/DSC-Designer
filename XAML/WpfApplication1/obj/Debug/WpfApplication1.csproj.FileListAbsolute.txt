@@ -7,3 +7,13 @@ c:\users\stephen\documents\visual studio 2015\Projects\WpfApplication1\WpfApplic
 c:\users\stephen\documents\visual studio 2015\Projects\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1_MarkupCompile.cache
 c:\users\stephen\documents\visual studio 2015\Projects\WpfApplication1\WpfApplication1\obj\Debug\WpfApplication1_MarkupCompile.lref
 c:\users\stephen\documents\visual studio 2015\Projects\WpfApplication1\WpfApplication1\obj\Debug\Window2.g.cs
+C:\git\psDSCMan\XAML\WpfApplication1\bin\Debug\WpfApplication1.exe.config
+C:\git\psDSCMan\XAML\WpfApplication1\obj\Debug\WpfApplication1.csprojResolveAssemblyReference.cache
+C:\git\psDSCMan\XAML\WpfApplication1\obj\Debug\beta.baml
+C:\git\psDSCMan\XAML\WpfApplication1\obj\Debug\0.3.baml
+C:\git\psDSCMan\XAML\WpfApplication1\obj\Debug\MainWindow.g.cs
+C:\git\psDSCMan\XAML\WpfApplication1\obj\Debug\beta.g.cs
+C:\git\psDSCMan\XAML\WpfApplication1\obj\Debug\0.3.g.cs
+C:\git\psDSCMan\XAML\WpfApplication1\obj\Debug\App.g.cs
+C:\git\psDSCMan\XAML\WpfApplication1\obj\Debug\WpfApplication1_MarkupCompile.cache
+C:\git\psDSCMan\XAML\WpfApplication1\obj\Debug\WpfApplication1_MarkupCompile.lref

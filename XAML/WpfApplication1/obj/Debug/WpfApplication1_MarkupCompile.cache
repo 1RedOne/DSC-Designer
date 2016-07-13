@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-c:\users\stephen\documents\visual studio 2015\Projects\WpfApplication1\WpfApplication1\obj\Debug\
+C:\git\psDSCMan\XAML\WpfApplication1\obj\Debug\
 WpfApplication1
 none
 false
 DEBUG;TRACE
-c:\users\stephen\documents\visual studio 2015\Projects\WpfApplication1\WpfApplication1\App.xaml
-3-85327526
+C:\git\psDSCMan\XAML\WpfApplication1\App.xaml
+31703174731
 
-7-2035066091
+7578749413
 13738642453
-MainWindow.xaml;Window1.xaml;Window2.xaml;
+MainWindow.xaml;beta.xaml;0.3.xaml;
 
 True
 
