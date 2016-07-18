@@ -84,7 +84,7 @@ namespace WpfApplication1 {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/WpfApplication1;component/tabdesigner.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/FoxDeployDSC_Designer;component/tabdesigner.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\TabDesigner.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

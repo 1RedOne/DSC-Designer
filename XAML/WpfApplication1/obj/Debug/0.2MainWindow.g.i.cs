@@ -83,7 +83,7 @@ namespace WpfTutorialSamples.Panels {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/WpfApplication1;component/0.2mainwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/FoxDeployDSC_Designer;component/0.2mainwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\0.2MainWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
