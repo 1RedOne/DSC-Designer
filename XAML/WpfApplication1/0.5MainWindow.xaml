@@ -1,0 +1,54 @@
+﻿<Window x:Class="WpfTutorialSamples.Panels.GridColRowSpan"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       Title="DSC Explorer" SizeToContent="Height" Width="525">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" MaxWidth="240"/>
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="5*" />
+            <RowDefinition Name="GridSplitterRow" Height="Auto"/>
+            <RowDefinition Height="2*" />
+            <RowDefinition Name="GridSplitterRow2" Height="Auto"/>
+            <RowDefinition Height="2*" />
+        </Grid.RowDefinitions>
+        <GroupBox x:Name="groupBox" Header="Resources" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="0,0,0,5">
+            <WrapPanel x:Name="Resources" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" >
+                <WrapPanel.Background>
+                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                        <GradientStop Color="#FFBD5B04" Offset="0"/>
+                        <GradientStop Color="#FF1AD3E5" Offset="1"/>
+                        <GradientStop Color="White" Offset="0.505"/>
+                    </LinearGradientBrush>
+                </WrapPanel.Background>
+                <Button Name="Clear" Content="Remove All" Width="137" />
+            </WrapPanel>
+        </GroupBox>
+
+        <TabControl x:Name="tabControl" Grid.Column="1" >
+
+        </TabControl>
+        <GridSplitter Grid.Row="2" Height="5">
+            <GridSplitter.Background>
+                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}"/>
+            </GridSplitter.Background>
+        </GridSplitter>
+        <DockPanel Grid.ColumnSpan="2" Grid.Row="2">
+            <RichTextBox x:Name="richTextBox" FontFamily="Consolas">
+                <FlowDocument>
+                    <Paragraph x:Name="Paragraph">
+                        <Run Background="White" Text="Compiled Resource will appear here" x:Name="CompiledDSC"/>
+                    </Paragraph>
+                </FlowDocument>
+            </RichTextBox>
+        </DockPanel>
+        <DockPanel Grid.ColumnSpan="2" Grid.Row="3">
+            <Label Content="Configuration name"/>
+            <TextBox Name="ConfName" Text="SampleConfig" VerticalContentAlignment="Center" Width='180'/>
+            <Button Name="Export" Content="Export Config"/>
+            <Button Name="Clearv2" Content="Clear All"/>
+        </DockPanel>
+    </Grid>
+</Window>
