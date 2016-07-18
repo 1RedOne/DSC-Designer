@@ -8,18 +8,18 @@ $inputXML = @"
 <Window x:Class="WpfTutorialSamples.Panels.GridColRowSpan"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-       Title="DSC Explorer" SizeToContent="Height" Width="525">
+       Title="DSC Explorer" SizeToContent="Height" Width="525" Height="600">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" MaxWidth="240"/>
             <ColumnDefinition Width="2*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="5*" />
+            <RowDefinition Height="5*" MinHeight="150" />
             <RowDefinition Name="GridSplitterRow" Height="Auto"/>
-            <RowDefinition Height="2*" />
+            <RowDefinition Height="2*" MaxHeight="30" MinHeight="30"/>
             <RowDefinition Name="GridSplitterRow2" Height="Auto"/>
-            <RowDefinition Height="2*" />
+            <RowDefinition Height ="Auto" MaxHeight="80"/>
         </Grid.RowDefinitions>
         <GroupBox x:Name="groupBox" Header="Resources" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="0,0,0,5">
             <WrapPanel x:Name="Resources" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" >
@@ -43,20 +43,18 @@ $inputXML = @"
             </GridSplitter.Background>
         </GridSplitter>
         <DockPanel Grid.ColumnSpan="2" Grid.Row="2">
-            <RichTextBox x:Name="richTextBox" FontFamily="Consolas">
-                <FlowDocument>
-                    <Paragraph x:Name="Paragraph">
-                        <Run Background="White" Text="Compiled Resource will appear here" x:Name="CompiledDSC"/>
-                    </Paragraph>
-                </FlowDocument>
-            </RichTextBox>
-        </DockPanel>
-        <DockPanel Grid.ColumnSpan="2" Grid.Row="3">
+            
             <Label Content="Configuration name"/>
             <TextBox Name="ConfName" Text="SampleConfig" VerticalContentAlignment="Center" Width='180'/>
             <Button Name="Export" Content="Export Config"/>
             <Button Name="Clearv2" Content="Clear All"/>
+            </DockPanel>
+        <DockPanel Grid.ColumnSpan="2" Grid.Row="3">
+         <ScrollViewer Height="239" VerticalScrollBarVisibility="Auto">
+                <TextBox x:Name="DSCBox" AcceptsReturn="True" TextWrapping="Wrap" Text="Compiled Resource will appear here"/>
+            </ScrollViewer>
         </DockPanel>
+        
     </Grid>
 </Window>
 "@ 
@@ -136,8 +134,12 @@ $Data = $PowerShell.EndInvoke($AsyncObject)
                     $Data | ? Name -eq 'Script'
                     $text.Text = ((Get-DscResource $this.Name -Syntax).Split("`n") -join "`n")
                     $text.FontFamily = 'Consolas'
-                    $text.Add_TextChanged({write-host "$($i++)text changed:$i "
-                        $WPFCompiledDSC.Text = $WPFtabControl.Items.Content.Text
+                    $text.Add_TextChanged({
+                        $WPFDSCBox.Text = @"
+configuration $($WpfconfName.Text) { 
+    $($WPFtabControl.Items.Content.Text)
+}
+"@
                         })
                     $tab.Content =  $text
 
@@ -149,8 +151,8 @@ $Data = $PowerShell.EndInvoke($AsyncObject)
                     $WPFtabControl.Items.Remove(($WPFtabControl.Items | Where Header -eq $this.Name))
                     })
             
-        [void]$WPFResources.Children.Add($newCheckBox) 
-
+        $i = $WPFResources.Children.Add($newCheckBox) 
+        $WPFtabControl.SelectedIndex = $i - 1
     }
 
     $WPFClear.Add_Click({
