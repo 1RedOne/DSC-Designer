@@ -1,0 +1,1 @@
+C:\git\psDSCMan\XAML\FoxDeployDSCdesigner\bin\Debug\FoxDeployDSC_Designer.exe.config
