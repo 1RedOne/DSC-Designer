@@ -43,8 +43,8 @@ $inputXML = @"
         <DockPanel Grid.ColumnSpan="2" Grid.Row="2">
                 <RichTextBox x:Name="richTextBox" FontFamily="Consolas">
                     <FlowDocument>
-                        <Paragraph>
-                            <Run Background="White" Text="RichTextBox"/>
+                        <Paragraph x:Name="Paragraph">
+                            <Run Background="White" Text="Compiled Resource will appear here" x:Name="CompiledDSC"/>
                         </Paragraph>
                     </FlowDocument>
                 </RichTextBox>
@@ -117,12 +117,24 @@ $Data = $PowerShell.EndInvoke($AsyncObject)
             $newCheckBox.Background = "White"
             $newCheckBox.Width = '137'
             $newCheckBox.Add_checked({
+                    #when the user clicks a checkbox for a DSC resource, we pull down the 
+                    
                     $TabName = $this.Name
                     $tab = New-Object System.Windows.Controls.TabItem
                     $tab.Name = "$($TabName)Tab"
                     $tab.Header = $TabName
-                    $tab.Content = ((Get-DscResource $this.Name -Syntax).Split("`n") | select -Skip 2 | select -SkipLast 2)-join "`n" 
+                    
+                    $text = New-Object System.Windows.Controls.TextBox
+                    $Data | ? Name -eq 'Script'
+                    $text.Text = ((Get-DscResource $this.Name -Syntax).Split("`n") -join "`n")
+                    $text.FontFamily = 'Consolas'
+                    $text.Add_TextChanged({write-host "$($i++)text changed:$i "
+                        $WPFCompiledDSC.Text = $WPFtabControl.Items.Content.Text
+                        })
+                    $tab.Content =  $text
+
                     $WPFtabControl.AddChild($tab)
+                    
                     })
 
             $newCheckBox.Add_unchecked({
@@ -135,19 +147,10 @@ $Data = $PowerShell.EndInvoke($AsyncObject)
 
     $WPFClear.Add_Click({
         $WPFResources.Children | ? Name -ne Clear | % {$_.IsChecked = $False}
+        $WPFCompiledDSC.Text= "Compiled Resource will appear here"
     })
-   # for ($i =0; $i -lt $WPFResources.Children.Count; $i++){
-   #     $WPFResources.children[$i] | %{
-   #         "setting up event handler for $($_.Name)"
-   #         $TabName = $WPFResources.children[$i].Name
-   #         $_.Add_Click({
-   #         $tab = New-Object System.Windows.Controls.TabItem
-   #         $tab.Name = "$($TabName)Tab"
-   #         $tab.Header = "$($TabName)"
-   #         $WPFtabControl.AddChild($tab)
-   #         })
-   #     }
-   # }
+
+    
     #Reference 
  
     #Remove an item when unchecked
