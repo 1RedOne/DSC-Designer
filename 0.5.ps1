@@ -18,6 +18,8 @@ $inputXML = @"
             <RowDefinition Height="5*" />
             <RowDefinition Name="GridSplitterRow" Height="Auto"/>
             <RowDefinition Height="2*" />
+            <RowDefinition Name="GridSplitterRow2" Height="Auto"/>
+            <RowDefinition Height="2*" />
         </Grid.RowDefinitions>
         <GroupBox x:Name="groupBox" Header="Resources" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="0,0,0,5">
             <WrapPanel x:Name="Resources" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" >
@@ -33,11 +35,7 @@ $inputXML = @"
         </GroupBox>
 
         <TabControl x:Name="tabControl" Grid.Column="1" >
-            <TabItem Header="Template" Visibility="Hidden">
-                <DataGrid Background="#FFE5E5E5">
-                    
-                </DataGrid>
-            </TabItem>
+
         </TabControl>
         <GridSplitter Grid.Row="2" Height="5">
             <GridSplitter.Background>
@@ -47,11 +45,17 @@ $inputXML = @"
         <DockPanel Grid.ColumnSpan="2" Grid.Row="2">
             <RichTextBox x:Name="richTextBox" FontFamily="Consolas">
                 <FlowDocument>
-                    <Paragraph>
-                        <Run Background="White" Text="RichTextBox"/>
+                    <Paragraph x:Name="Paragraph">
+                        <Run Background="White" Text="Compiled Resource will appear here" x:Name="CompiledDSC"/>
                     </Paragraph>
                 </FlowDocument>
             </RichTextBox>
+        </DockPanel>
+        <DockPanel Grid.ColumnSpan="2" Grid.Row="3">
+            <Label Content="Configuration name"/>
+            <TextBox Name="ConfName" Text="SampleConfig" VerticalContentAlignment="Center" Width='180'/>
+            <Button Name="Export" Content="Export Config"/>
+            <Button Name="Clearv2" Content="Clear All"/>
         </DockPanel>
     </Grid>
 </Window>
@@ -121,40 +125,24 @@ $Data = $PowerShell.EndInvoke($AsyncObject)
             $newCheckBox.Background = "White"
             $newCheckBox.Width = '137'
             $newCheckBox.Add_checked({
+                    #when the user clicks a checkbox for a DSC resource, we pull down the 
+                    
                     $TabName = $this.Name
                     $tab = New-Object System.Windows.Controls.TabItem
                     $tab.Name = "$($TabName)Tab"
                     $tab.Header = $TabName
                     
-                    #write-debug "Troubleshoot this tab"
-                        $grid = New-Object System.Windows.Controls.GridView
-                        $gridCo = new-object System.Windows.Controls.GridViewColumn
-                      #  $column1 = new-object system.windows.controls.columndefinition
-                      #  $Column2 = New-Object system.windows.controls.columndefinition
-                      #  $column1.Width="1*"
-                      #  $column2.Width="2*"
-                      #  $grid.ColumnDefinitions.Add($column1)
-                      #  $grid.ColumnDefinitions.add($Column2)
+                    $text = New-Object System.Windows.Controls.TextBox
+                    $Data | ? Name -eq 'Script'
+                    $text.Text = ((Get-DscResource $this.Name -Syntax).Split("`n") -join "`n")
+                    $text.FontFamily = 'Consolas'
+                    $text.Add_TextChanged({write-host "$($i++)text changed:$i "
+                        $WPFCompiledDSC.Text = $WPFtabControl.Items.Content.Text
+                        })
+                    $tab.Content =  $text
 
-                        $gridColumn1 = $gridColumn2 = New-Object System.Windows.Controls.GridView
-                            
-                        $ThisDSCResource = ((Get-DscResource $this.Name -Syntax).Split("`n") | select -Skip 2 | select -SkipLast 2) | ConvertFrom-StringData 
-                   ForEach ($prop in $ThisDSCResource){
-                        #$textbox = New-Object System.Windows.Controls.DataGridTextColumn
-                        #$textbox.IsReadOnly=$true
-                        #$textbox.Text=$prop.Name
-                    
-                        #$textbox.SetValue([system.windows.controls.grid]::ColumnProperty,($i%2 + 1))
-                        $gridColumn1.Add($prop.Name)
-                        $gridColumn2.Add($prop.Value)
-                        }
-                    $grid.Columns.Add($gridColumn1)  
-                    $grid.Columns.Add($gridColumn2)
-    
-                    $tab.Content = $grid
-                    #$tab.Content = ((Get-DscResource $this.Name -Syntax).Split("`n") | select -Skip 2 | select -SkipLast 2)-join "`n" 
-                    #don't need to add the tab anymore as we're cloning an active one
                     $WPFtabControl.AddChild($tab)
+                    
                     })
 
             $newCheckBox.Add_unchecked({
@@ -167,19 +155,10 @@ $Data = $PowerShell.EndInvoke($AsyncObject)
 
     $WPFClear.Add_Click({
         $WPFResources.Children | ? Name -ne Clear | % {$_.IsChecked = $False}
+        $WPFCompiledDSC.Text= "Compiled Resource will appear here"
     })
-   # for ($i =0; $i -lt $WPFResources.Children.Count; $i++){
-   #     $WPFResources.children[$i] | %{
-   #         "setting up event handler for $($_.Name)"
-   #         $TabName = $WPFResources.children[$i].Name
-   #         $_.Add_Click({
-   #         $tab = New-Object System.Windows.Controls.TabItem
-   #         $tab.Name = "$($TabName)Tab"
-   #         $tab.Header = "$($TabName)"
-   #         $WPFtabControl.AddChild($tab)
-   #         })
-   #     }
-   # }
+
+    
     #Reference 
  
     #Remove an item when unchecked
