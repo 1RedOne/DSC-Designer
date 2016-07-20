@@ -14,6 +14,8 @@
             <RowDefinition Height="2*" MaxHeight="30" MinHeight="30"/>
             <RowDefinition Name="GridSplitterRow2" Height="Auto"/>
             <RowDefinition Height ="Auto" MaxHeight="80"/>
+            <RowDefinition Name="GridSplitterRow3" Height="Auto"/>
+            <RowDefinition Height ="Auto" MaxHeight="30"/>
         </Grid.RowDefinitions>
         <GroupBox x:Name="groupBox" Header="Resources" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="0,0,0,5">
             <WrapPanel x:Name="Resources" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" >
@@ -27,9 +29,7 @@
                 <Button Name="Clear" Content="Remove All" Width="137" />
             </WrapPanel>
         </GroupBox>
-
         <TabControl x:Name="tabControl" Grid.Column="1" >
-
         </TabControl>
         <GridSplitter Grid.Row="2" Height="5">
             <GridSplitter.Background>
@@ -37,20 +37,27 @@
             </GridSplitter.Background>
         </GridSplitter>
         <DockPanel Grid.ColumnSpan="2" Grid.Row="2">
-            
             <Label Content="Configuration name"/>
             <TextBox Name="ConfName" Text="SampleConfig" VerticalContentAlignment="Center" Width='180'/>
             <Button Name="Export" Content="Export Config"/>
             <Button Name="Clearv2" Content="Clear All"/>
-            </DockPanel>
+        </DockPanel>
         <DockPanel Grid.ColumnSpan="2" Grid.Row="3">
-         <ScrollViewer Height="239" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer Height="239" VerticalScrollBarVisibility="Auto">
                 <TextBox x:Name="DSCBox" AcceptsReturn="True" TextWrapping="Wrap" Text="Compiled Resource will appear here"/>
             </ScrollViewer>
+            
         </DockPanel>
-
+        <DockPanel Grid.ColumnSpan="2" Grid.Row="4" Visibility="Hidden" Name="StatusPanel">
+            <StatusBar x:Name="StatuBar" DockPanel.Dock="Bottom">
+                <StatusBarItem>
+                    <TextBlock Name="StatusText" Text="Ham"/>
+                </StatusBarItem>
+            </StatusBar>
+        </DockPanel>
     </Grid>
 </Window>
+
 "@ 
  
 $inputXML = $inputXML -replace 'mc:Ignorable="d"','' -replace "x:N",'N' -replace '^<Win.*', '<Window'
