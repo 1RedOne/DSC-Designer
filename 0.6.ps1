@@ -2,7 +2,7 @@
 <Window x:Class="WpfTutorialSamples.Panels.GridColRowSpan"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-       Title="DSC Explorer" SizeToContent="Height" Width="525" Height="600">
+       Title="DSC Explorer" Width="525" Height="600">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" MaxWidth="240"/>
@@ -46,12 +46,11 @@
             <ScrollViewer Height="239" VerticalScrollBarVisibility="Auto">
                 <TextBox x:Name="DSCBox" AcceptsReturn="True" TextWrapping="Wrap" Text="Compiled Resource will appear here"/>
             </ScrollViewer>
-            
         </DockPanel>
-        <DockPanel Grid.ColumnSpan="2" Grid.Row="4" Visibility="Hidden" Name="StatusPanel">
-            <StatusBar x:Name="StatuBar" DockPanel.Dock="Bottom">
+        <DockPanel X:Name="StatusBar" Grid.ColumnSpan="2" Grid.Row="4">
+            <StatusBar DockPanel.Dock="Bottom">
                 <StatusBarItem>
-                    <TextBlock Name="StatusText" Text="Ham"/>
+                    <TextBlock Name="StatusText" Text="Ready"/>
                 </StatusBarItem>
             </StatusBar>
         </DockPanel>
@@ -59,7 +58,33 @@
 </Window>
 
 "@ 
+
+Function Update-Window {
+[cmdletBinding()]
+        Param (
+            $Control,
+            $Property,
+            $Value,
+            [switch]$AppendContent
+        )
  
+        # This is kind of a hack, there may be a better way to do this
+        If ($Property -eq "Close") {
+            $syncHash.Window.Dispatcher.invoke([action]{$syncHash.Window.Close()},"Normal")
+            Return
+        }
+ 
+        # This updates the control based on the parameters passed to the function
+        $form.Dispatcher.Invoke([action]{
+            # This bit is only really meaningful for the TextBox control, which might be useful for logging progress steps
+            If ($PSBoundParameters['AppendContent']) {
+                $Control.AppendText($Value)
+            } Else {
+                $Control.$Property = $Value
+            }
+        }, "Normal")
+    }    
+
 $inputXML = $inputXML -replace 'mc:Ignorable="d"','' -replace "x:N",'N' -replace '^<Win.*', '<Window'
 [void][System.Reflection.Assembly]::LoadWithPartialName('presentationframework')
 [xml]$XAML = $inputXML
@@ -127,6 +152,7 @@ $Data = $PowerShell.EndInvoke($AsyncObject)
             
             #region add a tab when checkbox clicked
             $newCheckBox.Add_checked({
+                    $WPFStatusText.Text = 'Loading resource...'
                     $TabName = $this.Name
                     $tab = New-Object System.Windows.Controls.TabItem
                     $tab.Name = "$($TabName)Tab"
@@ -146,7 +172,7 @@ configuration $($WpfconfName.Text) {
                     $tab.Content =  $text
 
                     $WPFtabControl.AddChild($tab)
-                    
+                    $WPFStatusText.Text = 'Ready...'
                     })
 
             $newCheckBox.Add_unchecked({
@@ -170,6 +196,10 @@ configuration $($WpfconfName.Text) {
     })
 
     $WPFExport.Add_Click({
+        #enable the status bar
+        #$WPFStatusText.text ="Creating Configuration Mof..."
+        #update-window WpfStatusText text -Value "Creating Configuration Mof..." -debug
+        $form.Dispatcher.Invoke([action]{$WPFStatusText.Text='Creating Configuration...'})
         write-host "Trying to invoke DSC config"
         try {Invoke-Expression $WPFDSCBox.Text -erroraction STOP}
        catch{write-warning 'aw hell nah'}
