@@ -220,9 +220,6 @@ configuration $($WpfconfName.Text) {
     })
 
     #endregion 
-    
-write-host "To show the form, run the following" -ForegroundColor Cyan
-'$Form.ShowDialog() | out-null'
- 
+
  
  $Form.ShowDialog() | out-null
