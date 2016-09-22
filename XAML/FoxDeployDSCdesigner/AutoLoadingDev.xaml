@@ -19,6 +19,8 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Name="Elements">
+                        <TextBox Text="he" Margin="0,0,0,20" Padding="5"/>
+                        <ComboBox /><RadioButton Content="eeeee" /><Label Content="333"/>
                     </StackPanel>
                 </Grid>
             </TabItem>
