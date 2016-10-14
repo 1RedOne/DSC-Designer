@@ -1,59 +1,33 @@
 ﻿$inputXML = @"
-<Window x:Class="WpfTutorialSamples.Panels.GridColRowSpan"
+<Window x:Class="FoxDeployDSC_Designer.AutoLoadingDev"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-       Title="DSC Designer" Width="525" Height="600">
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FoxDeployDSC_Designer"
+        mc:Ignorable="d"
+        Title="AutoLoadingDev" Height="403.597" Width="371.531">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1*" MaxWidth="240"/>
-            <ColumnDefinition Width="2*" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="5*" MinHeight="150" />
-            <RowDefinition Name="GridSplitterRow" Height="Auto"/>
-            <RowDefinition Height="2*" MaxHeight="30" MinHeight="30"/>
-            <RowDefinition Name="GridSplitterRow2" Height="Auto"/>
-            <RowDefinition Height ="Auto" MaxHeight="80"/>
-            <RowDefinition Name="GridSplitterRow3" Height="Auto"/>
-            <RowDefinition Height ="Auto" MaxHeight="30"/>
-        </Grid.RowDefinitions>
-        <GroupBox x:Name="groupBox" Header="Resources" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="0,0,0,5">
-            <WrapPanel x:Name="Resources" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" >
-                <WrapPanel.Background>
-                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                        <GradientStop Color="#FFBD5B04" Offset="0"/>
-                        <GradientStop Color="#FF1AD3E5" Offset="1"/>
-                        <GradientStop Color="White" Offset="0.505"/>
-                    </LinearGradientBrush>
-                </WrapPanel.Background>
-                <Button Name="Clear" Content="Remove All" Width="137" />
-            </WrapPanel>
-        </GroupBox>
-        <TabControl x:Name="tabControl" Grid.Column="1" >
+        <TabControl x:Name="tabControl" HorizontalAlignment="Left" Height="300" VerticalAlignment="Top" Width="350">
+            <TabItem Header="TabItem">
+                <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" MaxWidth="240" Name="ww"/>
+                        <ColumnDefinition Width="2*"  />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Name="ElementNames" Background="White">
+
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Name="Elements">
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Header="TabItem" Margin="0">
+                <Grid Background="#FFE5E5E5"/>
+            </TabItem>
         </TabControl>
-        <GridSplitter Grid.Row="2" Height="5">
-            <GridSplitter.Background>
-                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}"/>
-            </GridSplitter.Background>
-        </GridSplitter>
-        <DockPanel Grid.ColumnSpan="2" Grid.Row="2">
-            <Label Content="Configuration name"/>
-            <TextBox Name="ConfName" Text="SampleConfig" VerticalContentAlignment="Center" Width='180'/>
-            <Button Name="Export" Content="Export Config"/>
-            <Button Name="Clearv2" Content="Clear All"/>
-        </DockPanel>
-        <DockPanel Grid.ColumnSpan="2" Grid.Row="3">
-            <ScrollViewer Height="239" VerticalScrollBarVisibility="Auto">
-                <TextBox x:Name="DSCBox" AcceptsReturn="True" TextWrapping="Wrap" Text="Compiled Resource will appear here"/>
-            </ScrollViewer>
-        </DockPanel>
-        <DockPanel X:Name="StatusBar" Grid.ColumnSpan="2" Grid.Row="4">
-            <StatusBar DockPanel.Dock="Bottom">
-                <StatusBarItem>
-                    <TextBlock Name="StatusText" Text="Ready"/>
-                </StatusBarItem>
-            </StatusBar>
-        </DockPanel>
+        <Button x:Name="button" Content="Load Resource" HorizontalAlignment="Left" Margin="25,314,0,0" VerticalAlignment="Top" Width="105"/>
     </Grid>
 </Window>
 
@@ -131,7 +105,7 @@ Get-FormVariables
 
     [void]$PowerShell.AddScript({
 
-        Get-DscResource         
+        #Get-DscResource         
 
     })
 
@@ -158,9 +132,10 @@ $Data = $PowerShell.EndInvoke($AsyncObject)
                     $tab.Name = "$($TabName)Tab"
                     $tab.Header = $TabName
                     
+                    <#
                     $text = New-Object System.Windows.Controls.TextBox
                     $text.AcceptsReturn = $true
-                    $text.Text = ((Get-DscResource $this.Name -Syntax).Split("`n") -join "`n")
+                    #$text.Text = ((Get-DscResource $this.Name -Syntax).Split("`n") -join "`n")
                     $text.FontFamily = 'Consolas'
                     $text.Add_TextChanged({
                         $WPFDSCBox.Text = @"
@@ -171,7 +146,7 @@ configuration $($WpfconfName.Text) {
                         })
                     $tab.Content =  $text
 
-                    $WPFtabControl.AddChild($tab)
+                    $WPFtabControl.AddChild($tab)#>
                     $WPFStatusText.Text = 'Ready...'
                     })
 
@@ -190,6 +165,63 @@ configuration $($WpfconfName.Text) {
 #endregion add checkboxes
 
     #region event handlers for other buttons
+    $WPFbutton.Add_Click({
+        
+        $fields = (Get-DscResource User -Syntax).Split("`n")[2..(($sampleSyntax.Split("`n").length)-3)] | ConvertFrom-StringData
+
+        foreach ($field in $fields){
+            
+            $name = $field.Keys[0] 
+            "trying to write $name" >> c:\temp\Gui.log 
+            
+            if ($name -like "``[*"){$name = $name -replace '\['}
+            if ($name -like "Ensure*"){"$name is our special absent/present and should be a radio" >> c:\temp\Gui.log 
+            
+                     $label =  New-Object System.Windows.Controls.Checkbox
+                    $label.Name = "$($name)_Label"
+                    $label.Content = "$name"
+                    $WPFElementNames.AddChild($label)
+
+                    $label =  New-Object System.Windows.Controls.Label
+                    $label.Name = "User$($name)_Label"
+                    $label.Content = "Ensure Absent or Present"
+                    $WPFElements.AddChild($label)
+
+                   
+                    continue
+                    }
+            if ($field.Values[0] -like "*string*"){"$name should render as a textbox for strings">> c:\temp\Gui.log 
+                    $label =  New-Object System.Windows.Controls.Label
+                    $label.Name = "User$($name)_Label"
+                    $label.Content = "$name"
+                    $WPFElementNames.AddChild($label)
+                    
+                    $text =  New-Object System.Windows.Controls.TextBox
+                    $t = New-Object System.Windows.Thickness
+                    $t.Bottom = 4
+                    $text.Margin= $t 
+                    $text.Name = "User$($name)_textinput"
+                    
+                    
+                    $WPFElements.AddChild($text)
+                    
+                    continue
+                }
+            if ($field.Values[0] -like "*bool*")  {"$name should render as a checkbox true/false">> c:\temp\Gui.log 
+                                       
+                    $label =  New-Object System.Windows.Controls.Checkbox
+                    $label.Name = "$($name)_Label"
+                    $label.Content = "$name"
+                    $WPFElements.AddChild($label)
+            
+            }
+
+        }
+
+
+
+        })
+    
     $WPFClear.Add_Click({
         $WPFResources.Children | ? Name -ne Clear | % {$_.IsChecked = $False}
         $WPFDSCBox.Text= "Compiled Resource will appear here"
