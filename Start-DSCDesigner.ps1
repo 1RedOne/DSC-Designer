@@ -1,225 +1,239 @@
-﻿$inputXML = @"
-<Window x:Class="WpfTutorialSamples.Panels.GridColRowSpan"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-       Title="DSC Designer" Width="525" Height="600">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1*" MaxWidth="240"/>
-            <ColumnDefinition Width="2*" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="5*" MinHeight="150" />
-            <RowDefinition Name="GridSplitterRow" Height="Auto"/>
-            <RowDefinition Height="2*" MaxHeight="30" MinHeight="30"/>
-            <RowDefinition Name="GridSplitterRow2" Height="Auto"/>
-            <RowDefinition Height ="Auto" MaxHeight="80"/>
-            <RowDefinition Name="GridSplitterRow3" Height="Auto"/>
-            <RowDefinition Height ="Auto" MaxHeight="30"/>
-        </Grid.RowDefinitions>
-        <GroupBox x:Name="groupBox" Header="Resources" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="0,0,0,5">
-            <WrapPanel x:Name="Resources" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" >
-                <WrapPanel.Background>
-                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                        <GradientStop Color="#FFBD5B04" Offset="0"/>
-                        <GradientStop Color="#FF1AD3E5" Offset="1"/>
-                        <GradientStop Color="White" Offset="0.505"/>
-                    </LinearGradientBrush>
-                </WrapPanel.Background>
-                <Button Name="Clear" Content="Remove All" Width="137" />
-            </WrapPanel>
-        </GroupBox>
-        <TabControl x:Name="tabControl" Grid.Column="1" >
-        </TabControl>
-        <GridSplitter Grid.Row="2" Height="5">
-            <GridSplitter.Background>
-                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}"/>
-            </GridSplitter.Background>
-        </GridSplitter>
-        <DockPanel Grid.ColumnSpan="2" Grid.Row="2">
-            <Label Content="Configuration name"/>
-            <TextBox Name="ConfName" Text="SampleConfig" VerticalContentAlignment="Center" Width='180'/>
-            <Button Name="Export" Content="Export Config"/>
-            <Button Name="Clearv2" Content="Clear All"/>
-        </DockPanel>
-        <DockPanel Grid.ColumnSpan="2" Grid.Row="3">
-            <ScrollViewer Height="239" VerticalScrollBarVisibility="Auto">
-                <TextBox x:Name="DSCBox" AcceptsReturn="True" TextWrapping="Wrap" Text="Compiled Resource will appear here"/>
-            </ScrollViewer>
-        </DockPanel>
-        <DockPanel X:Name="StatusBar" Grid.ColumnSpan="2" Grid.Row="4">
-            <StatusBar DockPanel.Dock="Bottom">
-                <StatusBarItem>
-                    <TextBlock Name="StatusText" Text="Ready"/>
-                </StatusBarItem>
-            </StatusBar>
-        </DockPanel>
-    </Grid>
-</Window>
+Remove-Variable * -ErrorAction SilentlyContinue
+Clear-Host
 
-"@ 
+[Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')      | Out-Null
+[Reflection.Assembly]::LoadWithPartialName('System.Data')               | Out-Null
+[Reflection.Assembly]::LoadWithPartialName('System.Drawing')            | Out-Null
+[System.Drawing.Font]$sysFont       =                                   [System.Drawing.SystemFonts]::MessageBoxFont
+[System.Drawing.Font]$codeFont      = New-Object 'System.Drawing.Font' ('Consolas',                                        [System.Drawing.SystemFonts]::MessageBoxFont.SizeInPoints, [System.Drawing.FontStyle]::Regular)
+[System.Drawing.Font]$sysFontBold   = New-Object 'System.Drawing.Font' ([System.Drawing.SystemFonts]::MessageBoxFont.Name, [System.Drawing.SystemFonts]::MessageBoxFont.SizeInPoints, [System.Drawing.FontStyle]::Bold)
 
-Function Update-Window {
-[cmdletBinding()]
-        Param (
-            $Control,
-            $Property,
-            $Value,
-            [switch]$AppendContent
-        )
- 
-        # This is kind of a hack, there may be a better way to do this
-        If ($Property -eq "Close") {
-            $syncHash.Window.Dispatcher.invoke([action]{$syncHash.Window.Close()},"Normal")
-            Return
-        }
- 
-        # This updates the control based on the parameters passed to the function
-        $form.Dispatcher.Invoke([action]{
-            # This bit is only really meaningful for the TextBox control, which might be useful for logging progress steps
-            If ($PSBoundParameters['AppendContent']) {
-                $Control.AppendText($Value)
-            } Else {
-                $Control.$Property = $Value
-            }
-        }, "Normal")
-    }    
+###################################################################################################
+##                                                                                               ##
+##   Various Required Scripts                                                                    ##
+##                                                                                               ##
+###################################################################################################
 
-$inputXML = $inputXML -replace 'mc:Ignorable="d"','' -replace "x:N",'N' -replace '^<Win.*', '<Window'
-[void][System.Reflection.Assembly]::LoadWithPartialName('presentationframework')
-[xml]$XAML = $inputXML
-#Read XAML
- 
-    $reader=(New-Object System.Xml.XmlNodeReader $xaml) 
-  try{$Form=[Windows.Markup.XamlReader]::Load( $reader )}
-catch [System.Management.Automation.MethodInvocationException] {
-    Write-Warning "We ran into a problem with the XAML code.  Check the syntax for this control..."
-    write-host $error[0].Exception.Message -ForegroundColor Red
-    if ($error[0].Exception.Message -like "*button*"){
-        write-warning "Ensure your &lt;button in the `$inputXML does NOT have a Click=ButtonClick property.  PS can't handle this`n`n`n`n"}
+Function Save-File ( [string]$InitialDirectory, [string]$Title )
+{
+    [string]$return = ''
+    $filename = New-Object 'System.Windows.Forms.SaveFileDialog'
+    $filename.InitialDirectory = $InitialDirectory
+    $filename.Title            = $Title
+    $filename.Filter           = 'Configuration Files (*.*)|*.*|All Files|*.*'
+    If ([threading.thread]::CurrentThread.GetApartmentState() -ne 'STA') { $filename.ShowHelp = $true }    # Workaround for MTA issues not showing dialog box
+    If ($filename.ShowDialog($Main_Form) -eq [System.Windows.Forms.DialogResult]::OK) { [string[]]$return = ($filename.FileNames | Sort-Object) }
+    Try { $filename.Dispose() } Catch {}
+    Return $return
 }
-catch{#if it broke some other way <span class="wp-smiley wp-emoji wp-emoji-bigsmile" title=":D">:D</span>
-    Write-Host "Unable to load Windows.Markup.XamlReader. Double-check syntax and ensure .net is installed."
-        }
- 
-#===========================================================================
-# Store Form Objects In PowerShell
-#===========================================================================
- 
-$xaml.SelectNodes("//*[@Name]") | %{Set-Variable -Name "WPF$($_.Name)" -Value $Form.FindName($_.Name)}
- 
-Function Get-FormVariables{
-if ($global:ReadmeDisplay -ne $true){Write-host "If you need to reference this display again, run Get-FormVariables" -ForegroundColor Yellow;$global:ReadmeDisplay=$true}
-write-host "Found the following interactable elements from our form" -ForegroundColor Cyan
-get-variable WPF*
-}
- 
-Get-FormVariables
- 
-    #===========================================================================
-    # Use this space to add code to the various form elements in your GUI
-    #===========================================================================
-    
-   #retrieve all DSC resources in the background
-    $Runspace = [runspacefactory]::CreateRunspace()
 
+Function Clear-CheckBoxes
+{
+    ForEach ($control In ($FlowPanel.Controls)) { If ($control -is [System.Windows.Forms.CheckBox]) { $control.Checked = $false } }
+}
+
+Function Clear-AllConfig
+{
+    Clear-CheckBoxes
+}
+
+Function Export-Configuration
+{
+    Try
+    {
+        Invoke-Expression -Command $($txt_Configuration.Text) -ErrorAction Stop
+    }
+    Catch
+    {
+        Write-Warning 'Failed executing configuration'
+    }
+
+    [string]$fileName = Save-File -InitialDirectory '' -Title 'Save the configuration file...'
+    If ([string]::IsNullOrEmpty($fileName) -eq $false)
+    {
+        $txt_Configuration.Text | Out-File -FilePath $fileName -Force
+        [System.Windows.Forms.MessageBox]::Show($MainForm, "DSC resource created at $fileName", 'DSC Designer', 'OK', 'Information')
+    }
+    Else
+    {
+        Write-Host 'Empty filename'
+        Write-Host $fileName
+    }
+}
+
+Function yGet-DSCResources
+{
+    $Runspace   = [RunspaceFactory]::CreateRunspace()
     $PowerShell = [PowerShell]::Create()
-
-    $PowerShell.runspace = $Runspace
-
+    $PowerShell.Runspace = $Runspace
     $Runspace.Open()
+    $PowerShell.AddScript( { Get-DscResource } ) | Out-Null
 
-    [void]$PowerShell.AddScript({
+    If ($AsyncObject.IsCompleted -eq ($true)) { Write-Host 'Completed' } Else { Write-Host 'Waiting for DSC resources...'; Start-Sleep -Milliseconds 100 }
+    $AsyncObject = $PowerShell.BeginInvoke()
+    $Data = $PowerShell.EndInvoke($AsyncObject)
+    $Resources = ($Data | Sort-Object -Property Name)
 
-        Get-DscResource         
+    ForEach ($Item In $Resources)
+    {
+        $chk_DSCName = New-Object 'System.Windows.Forms.CheckBox'
+        $chk_DSCName.Name       = $($Item.Name).Trim()
+        $chk_DSCName.Text       = $($Item.Name).Trim()
+        $chk_DSCName.Margin     = '3, 1, 3, 1'
+        $chk_DSCName.Padding    = '3, 0, 0, 0'
+        $chk_DSCName.Size       = "$($btn_FlowRemoveAll.Width), 17"
+        $chk_DSCName.Add_CheckedChanged(
+        {
+            If ($this.Checked -eq $true)
+            {
+                $tab_NewTab = New-Object 'System.Windows.Forms.TabPage'
+	            $tab_NewTab.UseVisualStyleBackColor = $True
+	            $tab_NewTab.Name        = $($this.Name).Trim()
+	            $tab_NewTab.Text        = $($this.Name).Trim()
+                $TabPanel.TabPages.Add($tab_NewTab)
+                $TabPanel.SelectedIndex = ($TabPanel.TabCount - 1)
 
-    })
+                $txt_TextBox = New-Object 'System.Windows.Forms.TextBox'
+                $txt_TextBox.Dock       = 'Fill'
+                $txt_TextBox.Font       = $codeFont
+                $txt_TextBox.Multiline  = $true
+                $txt_TextBox.Text       = ((Get-DscResource -Name $($this.Name) -Syntax).Split("`r`n") -join "`r`n")
+                $txt_TextBox.Add_TextChanged(
+                {
+                    $txt_Configuration.Text = @"
+configuration $($txt_ConfigName.Text) {
 
-    if ($AsyncObject.IsCompleted -eq ($true)){Write-host "COMPLETED"}
-       else {write-host "Waiting for DSC resources to come back";start-sleep -Milliseconds 500}
-$AsyncObject = $PowerShell.BeginInvoke()
-$Data = $PowerShell.EndInvoke($AsyncObject)
-
-    $resources = $Data                                                             
-    
-    #region Add checkboxes for each resource
-    ForEach ($resource in $resources){
-        $newCheckBox = New-Object System.Windows.Controls.CheckBox                                                                                                                                             
-            $newCheckBox.Name = $resource.Name
-            $newCheckBox.Content = $resource.Name
-            $newCheckBox.Background = "White"
-            $newCheckBox.Width = '137'
-            
-            #region add a tab when checkbox clicked
-            $newCheckBox.Add_checked({
-                    $WPFStatusText.Text = 'Loading resource...'
-                    $TabName = $this.Name
-                    $tab = New-Object System.Windows.Controls.TabItem
-                    $tab.Name = "$($TabName)Tab"
-                    $tab.Header = $TabName
-                    
-                    $text = New-Object System.Windows.Controls.TextBox
-                    $text.AcceptsReturn = $true
-                    $text.Text = ((Get-DscResource $this.Name -Syntax).Split("`n") -join "`n")
-                    $text.FontFamily = 'Consolas'
-                    $text.Add_TextChanged({
-                        $WPFDSCBox.Text = @"
-configuration $($WpfconfName.Text) { 
-    $($WPFtabControl.Items.Content.Text)
+    $(ForEach ($page In $TabPanel.TabPages) { Write-Output $page.Tag.Text })
 }
 "@
-                        })
-                    $tab.Content =  $text
+                })
+                $tab_NewTab.Tag = $txt_TextBox
 
-                    $WPFtabControl.AddChild($tab)
-                    $WPFStatusText.Text = 'Ready...'
-                    })
-
-            $newCheckBox.Add_unchecked({
-                    $WPFtabControl.Items.Remove(($WPFtabControl.Items | Where Header -eq $this.Name))
-                    })
-            
-        $i = $WPFResources.Children.Add($newCheckBox)
-        #endregion add Checkbox 
-        
-        #needed a small delay to be able to add and then set the active tab
-        start-sleep -milliseconds 100
-        $WPFtabControl.SelectedIndex = $i - 1
-
+                $tab_NewTab.Controls.Add($txt_TextBox)
+            }
+            Else
+            {
+                $TabPanel.TabPages.RemoveByKey($this.Name)
+            }
+        })
+        $FlowPanel.Controls.Add($chk_DSCName)
     }
-#endregion add checkboxes
+}
 
-    #region event handlers for other buttons
-    $WPFClear.Add_Click({
-        $WPFResources.Children | ? Name -ne Clear | % {$_.IsChecked = $False}
-        $WPFDSCBox.Text= "Compiled Resource will appear here"
-    })
 
-    $WPFClearv2.Add_Click({
-        $WPFResources.Children | ? Name -ne Clear | % {$_.IsChecked = $False}
-        $WPFDSCBox.Text= "Compiled Resource will appear here"
-    })
+###################################################################################################
+##                                                                                               ##
+##   Main Form                                                                                   ##
+##                                                                                               ##
+###################################################################################################
 
-    $WPFExport.Add_Click({
-        $form.Dispatcher.Invoke([action]{$WPFStatusText.Text='Creating Configuration...'})
-        write-host "Trying to invoke DSC config"
-        try {Invoke-Expression $WPFDSCBox.Text -erroraction STOP}
-       catch{write-warning 'aw hell nah'}
+Function Show-MainForm
+{
+#region FORM ITEMS
+    [System.Windows.Forms.Application]::EnableVisualStyles()
+    $MainForm          = New-Object 'System.Windows.Forms.Form'
+    $FlowPanel         = New-Object 'System.Windows.Forms.FlowLayoutPanel'
+    $TabPanel          = New-Object 'System.Windows.Forms.TabControl'
+    $btn_FlowRemoveAll = New-Object 'System.Windows.Forms.Button'
 
-       
-        
-    $FolderDialog = New-Object System.Windows.Forms.FolderBrowserDialog
-         
-    $FolderDialog.ShowDialog() | Out-Null
-                
-    $outDir = $FolderDialog.SelectedPath
+    $lbl_ConfigName    = New-Object 'System.Windows.Forms.Label'
+    $txt_ConfigName    = New-Object 'System.Windows.Forms.TextBox'
+    $btn_Clear         = New-Object 'System.Windows.Forms.Button'
+    $btn_Export        = New-Object 'System.Windows.Forms.Button'
+    $txt_Configuration = New-Object 'System.Windows.Forms.TextBox'
+#endregion
+#region FORM STARTUP and SHUTDOWN
+    $InitialFormWindowState        = New-Object 'System.Windows.Forms.FormWindowState'
+    $MainForm_StateCorrection_Load = { $MainForm.WindowState = $InitialFormWindowState }
+    $MainForm_Load                 = {
+        ForEach ($control In $Main_Form.Controls) { $control.Font = $sysFont }
+        yGet-DSCResources
+    }
 
-    & $WpfconfName.Text -OutPutPath $outDir
-       
-    [System.Windows.Forms.MessageBox]::Show("DSC Resource Created at $outDir",'DSC Designer')
-    })
+    $MainForm_FormClosing          = [System.Windows.Forms.FormClosingEventHandler] {
+        $quit = [System.Windows.Forms.MessageBox]::Show($Main_Form, 'Are you sure you want to exit this form.?', ' Quit', 'YesNo', 'Question')
+        If ($quit -eq 'No') { $_.Cancel = $True }
+    }
 
-    #endregion 
+    $MainForm_Cleanup_FormClosed   = {
+        $MainForm.Remove_Load($MainForm_Load)
+        $MainForm.Remove_Load($MainForm_StateCorrection_Load)
+        $MainForm.Remove_FormClosing($MainForm_FormClosing)
+        $MainForm.Remove_FormClosed($MainForm_Cleanup_FormClosed)
+    }
 
- 
- $Form.ShowDialog() | out-null
+    $MainForm.SuspendLayout()
+#endregion
+#region FORM ITEMS
+    $MainForm.FormBorderStyle  = 'Sizable'
+    $MainForm.MaximizeBox      = $True
+    $MainForm.MinimizeBox      = $True
+    $MainForm.ControlBox       = $True
+    $MainForm.Text             = 'PSC Designer'
+    $MainForm.ShowInTaskbar    = $True
+    $MainForm.Size             = '600, 525'
+    $MainForm.StartPosition    = 'CenterParent'
+    $MainForm.Add_FormClosed($MainForm_Cleanup_FormClosed)
+    $MainForm.Add_Load($MainForm_Load)
+    $MainForm.Add_FormClosing($MainForm_FormClosing)
+
+    $FlowPanel.Anchor          = 'Top, Bottom, Left'
+    $FlowPanel.AutoScroll      = $true
+    $FlowPanel.BorderStyle     = 'FixedSingle'
+    $FlowPanel.Location        = ' 12,  12'
+    $FlowPanel.Size            = '200, 252'
+    $MainForm.Controls.Add($FlowPanel)
+
+    $TabPanel.Anchor           = 'Top, Bottom, Left, Right'
+    $TabPanel.Location         = '218,  12'
+    $TabPanel.Size             = '362, 252'
+    $TabPanel.Padding          = ' 12,   6'
+    $MainForm.Controls.Add($TabPanel)
+
+    $btn_FlowRemoveAll.Location    = '  3,   3'
+    $btn_FlowRemoveAll.Size        = '174,  25'
+    $btn_FlowRemoveAll.Text        = 'Remove All'
+    $btn_FlowRemoveAll.add_Click( { Clear-CheckBoxes } )
+    $FlowPanel.Controls.Add($btn_FlowRemoveAll)
+
+    $lbl_ConfigName.Anchor    = 'Bottom, Left'
+    $lbl_ConfigName.Location  = ' 12, 279' 
+    $lbl_ConfigName.Size      = '125,  25'
+    $lbl_ConfigName.Text      = 'Configuration Name'
+    $lbl_ConfigName.TextAlign = 'MiddleLeft'
+    $MainForm.Controls.Add($lbl_ConfigName)
+
+    $txt_ConfigName.Anchor    = 'Bottom, Left, Right'
+    $txt_ConfigName.Location  = '143, 279'
+    $txt_ConfigName.Size      = '275,  20'
+    $txt_ConfigName.Text      = 'Sample Config'
+    $MainForm.Controls.Add($txt_ConfigName)
+
+    $btn_Export.Anchor        = 'Bottom, Right'
+    $btn_Export.Location      = '424, 279'
+    $btn_Export.Size          = ' 75,  25'
+    $btn_Export.Text          = 'Export'
+    $btn_Export.Add_Click( { Export-Configuration } )
+    $MainForm.Controls.Add($btn_Export)
+
+    $btn_Clear.Anchor         = 'Bottom, Right'
+    $btn_Clear.Location       = '505, 279'
+    $btn_Clear.Size           = ' 75,  25'
+    $btn_Clear.Text           = 'Clear All'
+    $btn_Clear.Add_Click({ Clear-AllConfig })
+    $MainForm.Controls.Add($btn_Clear)
+
+    $txt_Configuration.Anchor    = 'Bottom, Left, Right'
+    $txt_Configuration.Location  = ' 12, 310'
+    $txt_Configuration.Size      = '568, 173'
+    $txt_Configuration.Multiline = $True
+    $MainForm.Controls.Add($txt_Configuration)
+#endregion
+    $MainForm.ResumeLayout()
+    $InitialFormWindowState = $MainForm.WindowState
+    $MainForm.Add_Load($MainForm_StateCorrection_Load)
+    $MainForm.Add_FormClosed($MainForm_Cleanup_FormClosed)
+    Return $MainForm.ShowDialog()
+}
+
+Show-MainForm | Out-Null
