@@ -1,4 +1,4 @@
-﻿$inputXML = @"
+$inputXML = @"
 <Window x:Class="WpfTutorialSamples.Panels.GridColRowSpan"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
