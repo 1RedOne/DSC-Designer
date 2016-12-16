@@ -204,21 +204,19 @@ configuration $($WpfconfName.Text) {
         $form.Dispatcher.Invoke([action]{$WPFStatusText.Text='Creating Configuration...'})
         write-host "Trying to invoke DSC config"
         try {Invoke-Expression $WPFDSCBox.Text -erroraction STOP}
-       catch{write-warning 'aw hell nah'}
+        catch{write-warning 'aw hell nah'}
 
-       
-        
-    $FolderDialog = New-Object System.Windows.Forms.FolderBrowserDialog
+        $FolderDialog = New-Object System.Windows.Forms.FolderBrowserDialog
          
-    $FolderDialog.ShowDialog() | Out-Null
-                
-    $outDir = $FolderDialog.SelectedPath
+        if ($FolderDialog.ShowDialog() -eq "OK"){
+            $outDir = $FolderDialog.SelectedPath
 
-    & $WpfconfName.Text -OutPutPath $outDir
+            & $WpfconfName.Text -OutPutPath $outDir
        
-    [System.Windows.Forms.MessageBox]::Show("DSC Resource Created at $outDir",'DSC Designer')
+            [System.Windows.Forms.MessageBox]::Show("DSC Resource Created at $outDir",'DSC Designer')
+        
+        }
     })
-
     #endregion 
 
  
